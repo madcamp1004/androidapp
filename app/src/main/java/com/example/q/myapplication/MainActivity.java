@@ -18,6 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,43 +35,57 @@ public class MainActivity extends AppCompatActivity {
   EditText et;
   EditText et2;
   Button btn;
-  Button plusbtn;
-   TextView tv;
-  StringBuffer sb = new StringBuffer();
+  Button selbtn;
+  String selString;
 
-  ArrayList<String> items;
+    ArrayList<String> items;
+  //ArrayList<ListViewBtnItem> items;
   ArrayAdapter adapter;
   ArrayList<Map<String, String>> dataList;
   ListView listview;
-
   @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         items = new ArrayList<String>();
-        adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_single_choice,items);
         listview = (ListView) findViewById(R.id.listview);
+        adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_single_choice,items);
         listview.setAdapter(adapter);
 
         et = (EditText)findViewById(R.id.et);
         et2 = (EditText)findViewById(R.id.et2);
         btn = (Button)findViewById(R.id.btn);
+        selbtn = (Button)findViewById(R.id.selbtn);
         //tv = (TextView)findViewById(R.id.tv);
-        btn.setOnClickListener(new View.OnClickListener() {
+        btn.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v){
                 if (Permissioncheck() == true) {
-                    insertContacts(et.getText().toString(), et2.getText().toString());
-                    String temp2 = et.getText().toString()+" : "+et2.getText().toString();
-                    items.add(temp2);
-                    adapter.notifyDataSetChanged();
+                    selString = et.getText().toString() + ": "+et2.getText().toString();
+                    Toast.makeText(MainActivity.this,selString+" is selected..",Toast.LENGTH_SHORT).show();
                 }
             }
         });
-      //  plusbtn =(Button)findViewById(R.id.plusbtn);
-        if(Permissioncheck() == true){
+        selbtn.setOnClickListener(new Button.OnClickListener(){
+            public void onClick(View v){
+                select();
+            }
+        });
+        if(Permissioncheck() == true) {
             loadContacts();
         }
+}
+
+   public void select(){
+      int count, checked;
+      count = adapter.getCount();
+      if(count > 0){
+          checked = listview.getCheckedItemPosition();
+          if(checked >-1 && checked <count){
+              selString = items.get(checked);
+              Toast.makeText(MainActivity.this,selString+" is selected..",Toast.LENGTH_SHORT).show();
+          }
+      }
    }
     @Override
     public int checkSelfPermission(String permission) {
@@ -112,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
       }
 };*/
 private void loadContacts(){
+    ListViewBtnItem item;
     ContentResolver cr = getContentResolver();
     Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,null,null,null,null);
     //check there exists contact
@@ -125,6 +141,7 @@ private void loadContacts(){
                 Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,ContactsContract.CommonDataKinds.Phone.CONTACT_ID+"=?",new String[]{id},null);
                 //if there are multiple contacts per id
                 while(pCur.moveToNext()){
+                    item = new ListViewBtnItem();
                     String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                     String temp3 = name+": "+phoneNo;
                     items.add(temp3);
@@ -174,4 +191,5 @@ private void insertContacts(String name,String phone) {
         }
     }
 }
+
 }
